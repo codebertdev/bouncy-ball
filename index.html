@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Labda</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; background: #121f2b; }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let ball = {
+  x: 100,
+  y: 100,
+  radius: 30,
+  vx: 0,
+  vy: 0,
+  gravity: 0.5,
+  bounce: 0.7,
+  dragging: false
+};
+
+let prevMouse = { x: 0, y: 0 };
+
+canvas.addEventListener("mousedown", (e) => {
+  const dx = e.clientX - ball.x;
+  const dy = e.clientY - ball.y;
+  if (dx*dx + dy*dy < ball.radius*ball.radius) {
+    ball.dragging = true;
+    ball.vx = 0;
+    ball.vy = 0;
+    prevMouse.x = e.clientX;
+    prevMouse.y = e.clientY;
+  }
+});
+
+canvas.addEventListener("mouseup", (e) => {
+  if (ball.dragging) {
+    ball.vx = (e.clientX - prevMouse.x) * 0.05;
+    ball.vy = (e.clientY - prevMouse.y) * 0.05;
+    ball.dragging = false;
+  }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (ball.dragging) {
+    ball.x = e.clientX;
+    ball.y = e.clientY;
+  }
+});
+
+function update() {
+  if (!ball.dragging) {
+    ball.vy += ball.gravity;
+    ball.y += ball.vy;
+    ball.x += ball.vx;
+
+    // Bounce on floor
+    if (ball.y + ball.radius > canvas.height) {
+      ball.y = canvas.height - ball.radius;
+      ball.vy *= -ball.bounce;
+    }
+
+    // Bounce on walls
+    if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+      ball.vx *= -ball.bounce;
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = "red";
+  ctx.fill();
+  ctx.closePath();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
